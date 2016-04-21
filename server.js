@@ -17,6 +17,7 @@ server.listen(3003);
 
 // Sockets object to save game code -> socked associations
 var socketCodes = {};
+var socketPlayers = {};
 
 console.log('Server running at http://APP_PRIVATE_IP_ADDRESS:8080/');
 // When a client connects...
@@ -32,13 +33,9 @@ io.sockets.on('connection', function (socket) {
                 // if game code is valid...
                 if (device.gameCode in socketCodes) {
                     // save the game code for controller commands
-                    socket.gameCode = device.gameCode;
-
+                    socketPlayers[socket.gameCode] = socket;
                     // initialize the controller
                     socket.emit("connected", {});
-
-                    // start the game
-                    socketCodes[device.gameCode].emit("connected", {});
                 }
                 // else game code is invalid,
                 //  send fail message and disconnect
@@ -90,6 +87,7 @@ io.sockets.on('connection', function (socket) {
         if (socket.gameCode && socket.gameCode in socketCodes) {
             console.log(data.answer);
             socketCodes[socket.gameCode].emit("answer", data.answer);
+            socketPlayers[socket.gameCode].emit("answer", data.answer);
         }
     });
     // send question id to game
@@ -97,6 +95,7 @@ io.sockets.on('connection', function (socket) {
         console.log(data.question);
         if (socket.gameCode && socket.gameCode in socketCodes) {
             socketCodes[socket.gameCode].emit("question", data.question);
+            socketPlayers[socket.gameCode].emit("question", data.question);
         }
     });
     // send question id to game
@@ -104,6 +103,7 @@ io.sockets.on('connection', function (socket) {
         console.log(data.closebox);
         if (socket.gameCode && socket.gameCode in socketCodes) {
             socketCodes[socket.gameCode].emit("closebox", data.closebox);
+            socketPlayers[socket.gameCode].emit("closebox", data.closebox);
         }
     });
 });
