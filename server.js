@@ -33,7 +33,7 @@ io.sockets.on('connection', function (socket) {
                 // if game code is valid...
                 if (device.gameCode in socketCodes) {
                     // save the game code for controller commands
-                    socketPlayers[socket.gameCode] = socket;
+                    socketPlayers[device.gameCode] = socket;
                     // initialize the controller
                     socket.emit("connected", {});
                 }
