@@ -87,7 +87,8 @@ io.sockets.on('connection', function (socket) {
         if (socket.gameCode && socket.gameCode in socketCodes) {
             console.log(data.answer);
             socketCodes[socket.gameCode].emit("answer", data.answer);
-            socketPlayers[socket.gameCode].emit("answer", data.answer);
+            if (socket.gameCode in socketPlayers)
+                socketPlayers[socket.gameCode].emit("answer", data.answer);
         }
     });
     // send question id to game
@@ -95,7 +96,8 @@ io.sockets.on('connection', function (socket) {
         console.log(data.question);
         if (socket.gameCode && socket.gameCode in socketCodes) {
             socketCodes[socket.gameCode].emit("question", data.question);
-            socketPlayers[socket.gameCode].emit("question", data.question);
+            if (socket.gameCode in socketPlayers)
+                socketPlayers[socket.gameCode].emit("question", data.question);
         }
     });
     // send question id to game
@@ -103,7 +105,8 @@ io.sockets.on('connection', function (socket) {
         console.log(data.closebox);
         if (socket.gameCode && socket.gameCode in socketCodes) {
             socketCodes[socket.gameCode].emit("closebox", data.closebox);
-            socketPlayers[socket.gameCode].emit("closebox", data.closebox);
+            if (socketPlayers[socket.gameCode])
+                socketPlayers[socket.gameCode].emit("closebox", data.closebox);
         }
     });
 });
