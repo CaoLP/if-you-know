@@ -28,25 +28,45 @@ io.sockets.on('connection', function (socket) {
     socket.on("device", function (device) {
         // if client is a browser game
         if (device.type == "game") {
-            // Generate a code
-            var gameCode = crypto.randomBytes(3).toString('hex');
+            if (device.gameCode) {
+                // if game code is valid...
+                if (device.gameCode in socketCodes) {
+                    // save the game code for controller commands
+                    socket.gameCode = device.gameCode;
 
-            // Ensure uniqueness
-            while (gameCode in socketCodes) {
-                gameCode = crypto.randomBytes(3).toString('hex');
+                    // initialize the controller
+                    socket.emit("connected", {});
+
+                    // start the game
+                    socketCodes[device.gameCode].emit("connected", {});
+                }
+                // else game code is invalid,
+                //  send fail message and disconnect
+                else {
+                    socket.emit("fail", {});
+                    socket.disconnect();
+                }
+            } else {
+                // Generate a code
+                var gameCode = crypto.randomBytes(3).toString('hex');
+
+                // Ensure uniqueness
+                while (gameCode in socketCodes) {
+                    gameCode = crypto.randomBytes(3).toString('hex');
+                }
+
+                // Store game code -> socket association
+                socketCodes[gameCode] = io.sockets.sockets[socket.id];
+                socket.gameCode = gameCode;
+
+                // Tell game client to initialize
+                //  and show the game code to the user
+                socket.emit("initialize", gameCode);
             }
 
-            // Store game code -> socket association
-            socketCodes[gameCode] = io.sockets.sockets[socket.id];
-            socket.gameCode = gameCode;
-
-            // Tell game client to initialize
-            //  and show the game code to the user
-            socket.emit("initialize", gameCode);
         } else if (device.type == "controller") {
             // if game code is valid...
-            if(device.gameCode in socketCodes)
-            {
+            if (device.gameCode in socketCodes) {
                 // save the game code for controller commands
                 socket.gameCode = device.gameCode;
 
@@ -58,8 +78,7 @@ io.sockets.on('connection', function (socket) {
             }
             // else game code is invalid,
             //  send fail message and disconnect
-            else
-            {
+            else {
                 socket.emit("fail", {});
                 socket.disconnect();
             }
